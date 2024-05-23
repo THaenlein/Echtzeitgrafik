@@ -1,0 +1,32 @@
+# - Try to find GLFW
+# Once done, this will define
+#
+# GLFW3_FOUND - system has GLFW
+# GLFW3_INCLUDE_DIR - the GLFW include directories
+# GLFW3_LIBRARIES - link these to use GLFW
+FIND_PATH( GLFW3_INCLUDE_DIR GLFW/glfw3.h
+	/usr/include
+	/usr/local/include
+	/opt/local/include
+	"${CMAKE_SOURCE_DIR}/include"
+)
+FIND_LIBRARY( GLFW3_LIBRARY glfw3
+	/usr/lib64
+	/usr/lib
+	/usr/local/lib
+	/opt/local/lib
+	"${CMAKE_SOURCE_DIR}/lib"
+)
+IF(GLFW3_INCLUDE_DIR AND GLFW3_LIBRARY)
+	SET( GLFW3_FOUND TRUE )
+	SET( GLFW3_LIBRARIES ${GLFW3_LIBRARY} )
+ENDIF(GLFW3_INCLUDE_DIR AND GLFW3_LIBRARY)
+IF(GLFW3_FOUND)
+	IF(NOT GLFW3_FIND_QUIETLY)
+	MESSAGE(STATUS "Found GLFW3: ${GLFW3_LIBRARY}")
+	ENDIF(NOT GLFW3_FIND_QUIETLY)
+ELSE(GLFW3_FOUND)
+	IF(GLFW3_FIND_REQUIRED)
+	MESSAGE(FATAL_ERROR "Could not find libGLFW3")
+	ENDIF(GLFW3_FIND_REQUIRED)
+ENDIF(GLFW3_FOUND)
