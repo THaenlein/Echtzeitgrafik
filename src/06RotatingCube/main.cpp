@@ -18,8 +18,10 @@ int main(int argc, char** argv)
 {
     std::cout << "RotatingCube" << std::endl;
 	
-    GLFWwindow* window = initAndCreateWindow();
+    GLFWwindow* window = initAndCreateWindow(true);
     glViewport(0, 0, WIDTH, HEIGHT);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_DEPTH_TEST);
 
     GLint shaderProgram = createShaderPipeline(perspectiveVertexShaderSource, perspectiveFragmentShaderSource);
     GLuint vao, vbo;
@@ -28,16 +30,16 @@ int main(int argc, char** argv)
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
+
     /* Position attribute */
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
+
     /* Color attribute */
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
-    glBindVertexArray(0);
+
     glUseProgram(shaderProgram);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_TRIANGLES);
-    glEnable(GL_DEPTH_TEST);
 
     while (glfwWindowShouldClose(window) == 0)
     {
