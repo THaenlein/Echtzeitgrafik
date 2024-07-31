@@ -76,6 +76,57 @@ float cube[] = {
     -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,
 };
 
+float cubePhong[] = {
+    // Position           Normal
+    // Back face
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, -1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 0.0f, -1.0f,
+     0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,
+     0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, -1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, -1.0f,
+
+    // Front face
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,
+
+    // Left face
+    -0.5f,  0.5f,  0.5f,  -1.0f, 0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  -1.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  -1.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  -1.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  -1.0f, 0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  -1.0f, 0.0f, 0.0f,
+
+    // Right face
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,
+
+     // Bottom face
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, -1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, -1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f, 0.0f,
+
+    // Top face
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
+};
+
 float rectangleIndexed[] = 
 {
     // Position          Color
@@ -133,4 +184,44 @@ static const GLchar* perspectiveFragmentShaderSource =
 "void main() {\n"
 "    color = vec4(ourColor, 1.0f);\n"
 "    //color = vec4(vec3(gl_FragCoord.z), 1.0);\n"
+"}\0";
+
+static const GLchar* phongVertexShaderSource =
+"#version 330 core\n"
+"layout (location = 0) in vec3 in_position;\n"
+"layout (location = 1) in vec3 in_normal;\n"
+"uniform mat4 u_model;\n"
+"uniform mat4 u_view;\n"
+"uniform mat4 u_projection;\n"
+"out vec3 normal;\n"
+"out vec3 fragPos;\n"
+"void main() {\n"
+"    gl_Position = u_projection * u_view * u_model * vec4(in_position, 1.0);\n"
+"    normal = mat3(u_model) * in_normal;\n"
+"    fragPos = vec3(u_model * vec4(in_position, 1.0));\n"
+"}\0";
+
+static const GLchar* phongFragmentShaderSource =
+"#version 330 core\n"
+"in vec3 normal;\n"
+"in vec3 fragPos;\n"
+"uniform vec3 u_viewPos;\n"
+"uniform vec3 u_lightPos;\n"
+"layout (location = 0) out vec4 out_color;\n"
+"void main() {\n"
+"	float ambientStr = 0.1;\n"
+"	vec3 lightColor = vec3(1.0, 1.0, 1.0);\n"
+"	vec3 ambient = ambientStr * lightColor;\n"
+"\n"
+"	vec3 norm = normalize(normal);\n"
+"	vec3 lightDir = normalize(u_lightPos - fragPos);\n"
+"	vec3 diffuse = max(dot(norm, lightDir), 0.0) * lightColor;\n"
+"	\n"
+"	float specularStr = 0.3;\n"
+"	vec3 viewDir = normalize(u_viewPos - fragPos);\n"
+"	vec3 reflectDir = reflect(-lightDir, norm);\n"
+"	vec3 spec = specularStr * pow(max(dot(viewDir, reflectDir), 0.0), 32) * lightColor;\n"
+"\n"
+"	vec3 phong = (ambient + diffuse + spec);\n"
+"	out_color = vec4(phong, 1.0);\n"
 "}\0";
