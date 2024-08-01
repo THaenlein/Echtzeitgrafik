@@ -51,15 +51,15 @@ int main(int argc, char** argv)
         glm::mat4 projection;
         model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
         view = glm::translate(view, -viewPos);
-        projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 1000.0f);
+        projection = glm::perspective(glm::radians(45.0f), float(WIDTH) / float(HEIGHT), 0.1f, 1000.0f);
 
+        // Setting uniforms
         int modelLoc = glGetUniformLocation(shaderProgram, "u_model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
         int viewLoc = glGetUniformLocation(shaderProgram, "u_view");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
         int perspectiveLoc = glGetUniformLocation(shaderProgram, "u_projection");
         glUniformMatrix4fv(perspectiveLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
         int viewPosLoc = glGetUniformLocation(shaderProgram, "u_viewPos");
         glUniform3fv(viewPosLoc, 1, &viewPos[0]);
         int lightPosLoc = glGetUniformLocation(shaderProgram, "u_lightPos");

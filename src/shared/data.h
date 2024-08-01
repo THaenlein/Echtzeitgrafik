@@ -2,7 +2,7 @@
 
 #include <GL/glew.h>
 
-static const GLuint WIDTH = 800, HEIGHT = 600;
+static const GLuint WIDTH = 1024, HEIGHT = 1024;
 static const GLuint INFOLOG_LEN = 512;
 
 GLfloat triangle[] = 
@@ -197,7 +197,7 @@ static const GLchar* phongVertexShaderSource =
 "out vec3 fragPos;\n"
 "void main() {\n"
 "    gl_Position = u_projection * u_view * u_model * vec4(in_position, 1.0);\n"
-"    normal = mat3(u_model) * in_normal;\n"
+"    normal = mat3(transpose(inverse(u_model))) * in_normal;\n"
 "    fragPos = vec3(u_model * vec4(in_position, 1.0));\n"
 "}\0";
 
