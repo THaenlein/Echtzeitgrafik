@@ -5,6 +5,12 @@
 static const GLuint WIDTH = 1024, HEIGHT = 1024;
 static const GLuint INFOLOG_LEN = 512;
 
+struct ImageData
+{
+    unsigned char* data;
+    int width, height, nrChannels;
+};
+
 GLfloat triangle[] = 
 {
     // Position           Color   
@@ -127,6 +133,58 @@ float cubePhong[] = {
     -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,
 };
 
+float cubeUV[] = {
+    // Position          UV Coordinates
+    // Back face
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f, 1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f, 0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+
+    // Front face
+    -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f, 1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f, 0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f, 0.0f, 0.0f,
+
+    // Left face
+    -0.5f,  0.5f,  0.5f, 0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f, 1.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f, 0.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f, 0.0f, 0.0f,
+
+    // Right face
+     0.5f,  0.5f,  0.5f, 0.0f, 0.0f,
+     0.5f,  0.5f, -0.5f, 1.0f, 0.0f,
+     0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f, 0.0f, 1.0f,
+     0.5f,  0.5f,  0.5f, 0.0f, 0.0f,
+
+     // Bottom face
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f, 1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f, 1.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f, 0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+
+     // Top face
+    -0.5f,  0.5f, -0.5f, 0.0f, 0.0f,
+     0.5f,  0.5f, -0.5f, 1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f, 1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f, 0.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f, 0.0f, 0.0f,
+};
+
+
 float rectangleIndexed[] = 
 {
     // Position          Color
@@ -224,4 +282,27 @@ static const GLchar* phongFragmentShaderSource =
 "\n"
 "	vec3 phong = (ambient + diffuse + spec);\n"
 "	out_color = vec4(phong, 1.0);\n"
+"}\0";
+
+static const GLchar* textureVertexShaderSource =
+"#version 330 core\n"
+"layout (location = 0) in vec3 position;\n"
+"layout (location = 1) in vec2 uv;\n"
+"uniform mat4 u_modelViewProjection;\n"
+"out vec2 texCoord;\n"
+"\n"
+"void main()\n"
+"{\n"
+"    gl_Position = u_modelViewProjection * vec4(position, 1.0);\n"
+"    texCoord = uv;\n"
+"}\0";
+
+static const GLchar* textureFragmentShaderSource =
+"#version 330 core\n"
+"in vec2 texCoord;\n"
+"uniform sampler2D u_image;\n"
+"layout (location = 0) out vec4 out_color;\n"
+"\n"
+"void main() {\n"
+"	out_color = texture(u_image, texCoord);\n"
 "}\0";
