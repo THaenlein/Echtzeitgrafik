@@ -16,7 +16,7 @@
 
 int main(int argc, char** argv)
 {
-    std::cout << "Texture" << std::endl;
+    std::cout << "Textures" << std::endl;
 
     GLFWwindow* window = initAndCreateWindow(true);
     glViewport(0, 0, WIDTH, HEIGHT);
@@ -41,41 +41,58 @@ int main(int argc, char** argv)
     glEnableVertexAttribArray(1);
 
     ImageData imageData = loadImage("TCom_Pavement_StoneGreen_4K_albedo");
-    GLuint texture;
+    GLuint stoneTexture;
     if (imageData.data)
     {
-        texture = createTexture(imageData, 0);
+        stoneTexture = createTexture(imageData, 0);
         stbi_image_free(imageData.data);
-        
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture);
+    }
+
+    imageData = loadImage("TCom_Pavement_TerracottaAntique_4K_albedo");
+    GLuint terracottaTexture;
+    if (imageData.data)
+    {
+        terracottaTexture = createTexture(imageData, 1);
+        stbi_image_free(imageData.data);
     }
 
     glUseProgram(shaderProgram);
 
-    glm::vec3 viewPos(0.0f, 0.0f, 3.0f);
+    glm::vec3 viewPos(0.0f, 0.0f, 5.0f);
 
     while (glfwWindowShouldClose(window) == 0)
     {
         // clear the window
         glClearColor(0.0f, 0.1f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+        
         // Calculate matrices
-        glm::mat4 model = glm::mat4(1.0f), view = glm::mat4(1.0f);
-        glm::mat4 projection, modelViewProjection;
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+        glm::mat4 modelLeft = glm::mat4(1.0f), modelRight = glm::mat4(1.0f), view = glm::mat4(1.0f);
+        glm::mat4 projection, modelViewProjectionLeft, modelViewProjectionRight;
+        modelLeft = glm::translate(modelLeft, glm::vec3(-1.0f, 0.0f, 0.0f));
+        modelLeft = glm::rotate(modelLeft, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
+        modelRight = glm::translate(modelRight, glm::vec3(1.0f, 0.0f, 0.0f));
+        modelRight = glm::rotate(modelRight, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
         view = glm::translate(view, -viewPos);
         projection = glm::perspective(glm::radians(45.0f), float(WIDTH) / float(HEIGHT), 0.1f, 1000.0f);
-        modelViewProjection = projection * view * model;
+        modelViewProjectionLeft = projection * view * modelLeft;
+        modelViewProjectionRight = projection * view * modelRight;
 
-        // Setting uniforms
+        // Setting uniforms for left object
         int modelViewProjectionLoc = glGetUniformLocation(shaderProgram, "u_modelViewProjection");
-        glUniformMatrix4fv(modelViewProjectionLoc, 1, GL_FALSE, glm::value_ptr(modelViewProjection));
+        glUniformMatrix4fv(modelViewProjectionLoc, 1, GL_FALSE, glm::value_ptr(modelViewProjectionLeft));
         int imageLoc = glGetUniformLocation(shaderProgram, "u_image");
         glUniform1i(imageLoc, 0);
 
         glBindVertexArray(vao);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        // Setting uniforms for right object
+        modelViewProjectionLoc = glGetUniformLocation(shaderProgram, "u_modelViewProjection");
+        glUniformMatrix4fv(modelViewProjectionLoc, 1, GL_FALSE, glm::value_ptr(modelViewProjectionRight));
+        imageLoc = glGetUniformLocation(shaderProgram, "u_image");
+        glUniform1i(imageLoc, 1);
+
         glDrawArrays(GL_TRIANGLES, 0, 36);
         glBindVertexArray(0);
 
