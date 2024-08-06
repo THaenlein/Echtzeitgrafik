@@ -18,7 +18,7 @@ int main(int argc, char** argv)
 {
     std::cout << "Textures" << std::endl;
 
-    GLFWwindow* window = initAndCreateWindow(true);
+    GLFWwindow* window = initAndCreateWindow();
     glViewport(0, 0, WIDTH, HEIGHT);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glEnable(GL_DEPTH_TEST);
