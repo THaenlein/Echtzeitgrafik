@@ -9,6 +9,8 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #include "helper/RootDir.h"
 #include "data.h"
@@ -25,7 +27,7 @@ GLFWwindow* initAndCreateWindow(bool debugContext = false)
     glfwWindowHint(GLFW_SAMPLES, 8);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, debugContext);
     window = glfwCreateWindow(WIDTH, HEIGHT, "Echtzeitgrafik", nullptr, nullptr);
 
@@ -132,13 +134,13 @@ GLuint createTexture(ImageData imageData, int unit)
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imageData.width, imageData.height, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData.data);
-    //glGenerateMipmap(GL_TEXTURE_2D);
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     return texture;
@@ -199,5 +201,59 @@ void loadMeshFromFile(std::string fileName, std::vector<float>& vertices, std::v
         for (unsigned int j = 0; j < face.mNumIndices; j++) {
             indices.push_back(face.mIndices[j]);
         }
+    }
+}
+
+FT_Face loadFont(std::string fileName, FT_Library ft)
+{
+    std::filesystem::path pathToFile(ROOT_DIR);
+    pathToFile = pathToFile / "res" / fileName;
+
+    FT_Face face;
+    if (FT_New_Face(ft, pathToFile.string().c_str(), 0, &face)) 
+    { 
+        std::cerr << "Failed loading font." << std::endl; 
+    }
+
+    return face;
+}
+
+void generateFontMap(FT_Face fontFace, int fontSize, GlyphMap& map)
+{
+    FT_Set_Pixel_Sizes(fontFace, 0, fontSize);
+
+    for (unsigned char c = 0; c < 128; c++) 
+    {
+        if (FT_Load_Char(fontFace, c, FT_LOAD_RENDER))
+        { 
+            std::cout << "Error rendering glyph" << std::endl;     
+            continue; 
+        }
+
+        // Create OpenGL texture for the glyph bitmap (single channel)
+        GLuint texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        // Make sure alignment is 1 byte (glyph bitmaps are single-byte rows)
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, fontFace->glyph->bitmap.width,
+                     fontFace->glyph->bitmap.rows, 0, GL_RED, GL_UNSIGNED_BYTE,
+                     fontFace->glyph->bitmap.buffer);
+        // Texture options
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        Glyph character =
+        { 
+            texture, 
+            glm::ivec2(fontFace->glyph->bitmap.width, fontFace->glyph->bitmap.rows),
+            glm::ivec2(fontFace->glyph->bitmap_left, fontFace->glyph->bitmap_top),
+            fontFace->glyph->advance.x
+        };
+
+        // Store in map (use char key)
+        map.insert(std::make_pair(static_cast<char>(c), character));
     }
 }
